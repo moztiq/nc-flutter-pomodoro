@@ -10,28 +10,49 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int totalSeconds = 1500;
+  static const originSeconds = 5;
+  int totalSeconds = originSeconds;
   bool isRunning = false;
+  int totalPomodoros = 0;
   late Timer timer;
 
   void onTick(Timer timer) {
     setState(() {
-      totalSeconds = totalSeconds - 1;
+      if (totalSeconds == 0) {
+        timer.cancel();
+        isRunning = false;
+        totalPomodoros = totalPomodoros + 1;
+        totalSeconds = originSeconds;
+      } else {
+        totalSeconds = totalSeconds - 1;
+      }
     });
   }
 
   void onStartPressed() {
+    timer = Timer.periodic(
+      const Duration(seconds: 1),
+      onTick,
+    );
     setState(() {
       isRunning = true;
-      timer = Timer.periodic(const Duration(seconds: 1), onTick);
     });
   }
 
   void onPausePressed() {
+    timer.cancel();
     setState(() {
       isRunning = false;
-      timer.cancel();
     });
+  }
+
+  String twoDigits(int n) => n.toString().padLeft(2, '0');
+
+  String format(int seconds) {
+    var duration = Duration(seconds: seconds);
+    var digitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    var digitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$digitMinutes:$digitSeconds";
   }
 
   @override
@@ -45,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Container(
               alignment: Alignment.bottomCenter,
               child: Text(
-                '$totalSeconds', //'25:00',
+                format(totalSeconds), //'25:00',
                 style: TextStyle(
                   fontSize: 89,
                   fontWeight: FontWeight.w600,
@@ -94,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         Text(
-                          '0',
+                          '$totalPomodoros',
                           style: TextStyle(
                             fontSize: 58,
                             fontWeight: FontWeight.w600,
